@@ -2,29 +2,29 @@
 // Users pick a leave type, select dates using a custom interactive calendar, 
 // add a note, complete HR checklists, choose visibility, and submit.
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    StatusBar,
     Alert,
     Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, radius, leaveTypes } from '../theme';
+import { colors, leaveTypes } from '../theme';
 
 const LEAVE_TYPES = [
     { key: 'annual', label: '✈  Annual' },
     { key: 'sick', label: '+  Sick' },
     { key: 'ph', label: '★  Public Holiday' },
     { key: 'workfromhome', label: '⌂  WFH' },
-    { key: 'maternity', label: ' maternity' },
-    { key: 'paternity', label: ' paternity' },
-    { key: 'emergency', label: ' emergency' },
+    { key: 'maternity', label: ' Maternity' },
+    { key: 'paternity', label: ' Paternity' },
+    { key: 'emergency', label: ' Emergency' },
 ];
 
 // Helper to format dates nicely
