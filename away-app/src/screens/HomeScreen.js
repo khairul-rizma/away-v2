@@ -10,23 +10,25 @@ import {
     StatusBar,
     Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Avatar from '../components/Avatar';
 import LeaveBadge from '../components/LeaveBadge';
 import { colors, spacing, radius, leaveTypes } from '../theme';
 
-// --- Placeholder data ---
+// --- Synced Data from TeamScreen ---
 const AWAY_TODAY = [
-    { id: '1', name: 'Marcus Lee', type: 'annual', note: 'Family trip · Returns 12 May' },
-    { id: '2', name: 'Priya Nair', type: 'sick', note: 'Unwell today' },
-    { id: '3', name: 'Jin Park', type: 'ph', note: 'Labour Day' },
-    { id: '4', name: 'Nhan Huyh', type: 'annual', note: 'Family trip · Returns 12 May' },
-    { id: '5', name: 'Kai', type: 'sick', note: 'Unwell today' },
-    { id: '6', name: 'Josh Hsu', type: 'ph', note: 'Labour Day' },
+    { id: 'tt3', name: 'Afra', type: 'annual', note: 'Leave · Returns tomorrow' },
+    { id: 'm4', name: 'Dai Rong', type: 'wfh', note: 'Working from home' },
+    { id: 'd4', name: 'Preeyaphat', type: 'sick', note: 'Unwell today' },
+    { id: 's3', name: 'Aiman', type: 'ph', note: 'Holiday' },
+    { id: 'c5', name: 'Sawsan', type: 'annual', note: 'Leave · Returns 12 May' },
+    { id: 'ch2', name: 'Nhan', type: 'annual', note: 'Family trip' },
+    { id: 'ch3', name: 'Kai', type: 'sick', note: 'Unwell today' },
 ];
 
 const COMING_UP = [
-    { id: '4', name: 'Amir Hassan', date: 'Tue 6 May', type: 'wfh', note: 'WFH day' },
-    { id: '5', name: 'Lei Chen', date: 'Wed–Thu 7–8 May', type: 'annual', note: 'Conference' },
+    { id: 'tt1', name: 'Zulhakim', date: 'Tue 6 May', type: 'wfh', note: 'WFH day' },
+    { id: 'd1', name: 'Alex', date: 'Wed–Thu 7–8 May', type: 'annual', note: 'Conference' },
 ];
 
 function leaveColor(type) {
@@ -52,32 +54,33 @@ function PersonRow({ person, onPress, showDate = false }) {
 }
 
 export default function HomeScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
+
     const today = new Date();
     const dayName = today.toLocaleDateString('en-MY', { weekday: 'long' });
     const fullDate = today.toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' });
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-            {/* Upgraded Teal header */}
-            <View style={styles.header}>
+            {/* Upgraded Teal header with dynamic padding applied inline */}
+            <View style={[styles.header, { paddingTop: insets.top + 15 }]}>
                 <View style={styles.headerTop}>
                     <View>
                         <Text style={styles.greeting}>Good morning,</Text>
-                        <Text style={styles.userName}>Sofía Morales 👋</Text>
+                        <Text style={styles.userName}>Khairul Rizma 👋</Text>
                     </View>
                     <TouchableOpacity
                         style={styles.bellBtn}
                         onPress={() => navigation.navigate('Notifications')}
                     >
                         <Text style={styles.bellIcon}>🔔</Text>
-                        {/* Fake unread indicator */}
                         <View style={styles.unreadDot} />
                     </TouchableOpacity>
                 </View>
 
-                {/* New Contextual Info Bar */}
+                {/* Contextual Info Bar */}
                 <View style={styles.headerBottom}>
                     <View>
                         <Text style={styles.dayText}>{dayName}</Text>
@@ -167,13 +170,11 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAF9' }, // Slightly softer background
+    container: { flex: 1, backgroundColor: '#F8FAF9' },
 
-    // Header
     header: {
         backgroundColor: colors.primary,
         paddingHorizontal: spacing?.lg || 20,
-        paddingTop: Platform.OS === 'ios' ? 10 : 20,
         paddingBottom: 25,
         borderBottomLeftRadius: 24,
         borderBottomRightRadius: 24,
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#FF5A5F', // A bright pop for unread
+        backgroundColor: '#FF5A5F',
         borderWidth: 1.5,
         borderColor: colors.primary,
     },
@@ -222,17 +223,14 @@ const styles = StyleSheet.create({
     },
     balanceText: { fontSize: 11, color: colors.white, fontWeight: '700' },
 
-    // Scroll
-    scroll: { flex: 1, marginTop: -15 }, // Overlaps the curved header slightly
+    scroll: { flex: 1, marginTop: -15 },
     scrollContent: { paddingHorizontal: spacing?.md || 16, paddingBottom: 100, paddingTop: 10 },
 
-    // Cards
     card: {
         backgroundColor: colors.white,
         borderRadius: radius?.lg || 16,
         padding: spacing?.md || 16,
         marginBottom: spacing?.md || 16,
-        // Added shadow for visual depth
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
@@ -251,7 +249,6 @@ const styles = StyleSheet.create({
     countText: { fontSize: 11, color: colors.primary, fontWeight: '700' },
     seeAll: { fontSize: 13, color: colors.primary, fontWeight: '600' },
 
-    // Person rows
     rowWrapper: { paddingVertical: 2 },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F0F4F2' },
     personRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
@@ -269,7 +266,6 @@ const styles = StyleSheet.create({
     },
     viewCalendar: { fontSize: 13, color: colors.primary, fontWeight: '700' },
 
-    // Empty state
     emptyState: { alignItems: 'center', paddingVertical: 30 },
     emptyIconCircle: {
         width: 64,
@@ -286,7 +282,6 @@ const styles = StyleSheet.create({
     emptyAction: { borderWidth: 2, borderColor: colors.primary, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
     emptyActionText: { fontSize: 14, color: colors.primary, fontWeight: '700' },
 
-    // FAB
     fab: {
         position: 'absolute',
         bottom: 24,

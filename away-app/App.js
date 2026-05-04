@@ -1,16 +1,7 @@
 // App.js
-// This is the entry point of the Away app.
-// It sets up two navigators:
-//   1. A Stack navigator — for screens that slide over each other (Auth, modals, detail views)
-//   2. A Bottom Tab navigator — for the main 4-tab experience (Home, Calendar, Team, Profile)
-//
-// Navigation flow:
-//   Splash → Onboarding → Auth → MainTabs (Home | Calendar | Team | Profile)
-//   Any tab can open: LogLeave, LeaveDetail, Notifications (stack screens)
-//   LogLeave leads to: Success or Error state screens
 import { registerRootComponent } from 'expo';
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, Platform, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -40,10 +31,10 @@ const Tab = createBottomTabNavigator();
 
 // --- Tab icons (emoji, no extra library needed) ---
 const TAB_ICONS = {
-    Home: { active: '⌂', inactive: '⌂' },
-    Calendar: { active: '▦', inactive: '▦' },
-    Team: { active: '◉', inactive: '◉' },
-    Profile: { active: '◎', inactive: '◎' },
+    Home: '⌂',
+    Calendar: '▦',
+    Team: '◉',
+    Profile: '◎',
 };
 
 // --- Bottom Tab Navigator (the main 4-tab shell) ---
@@ -56,48 +47,46 @@ function MainTabs() {
                     backgroundColor: colors.white,
                     borderTopWidth: 0.5,
                     borderTopColor: '#E8E8E8',
-                    height: 60,
-                    paddingBottom: 8,
-                    paddingTop: 4,
+                    // Adjust height and padding dynamically based on the device platform
+                    height: Platform.OS === 'ios' ? 85 : 65,
+                    paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+                    paddingTop: 8,
                 },
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: '#AAAAAA',
-                tabBarLabelStyle: { fontSize: 10, fontWeight: '500' },
-                tabBarIcon: ({ focused }) => {
-                    // We use emoji icons to avoid needing an icon library.
-                    // To switch to vector icons: install react-native-vector-icons
-                    // and replace this function with an Icon component.
-                    const icons = TAB_ICONS[route.name];
-                    return null; // emoji shown via tabBarLabel already
+                tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
+                tabBarIcon: ({ color }) => {
+                    // Properly render the emoji as the icon
+                    const iconSymbol = TAB_ICONS[route.name];
+                    return <Text style={{ color: color, fontSize: 20 }}>{iconSymbol}</Text>;
                 },
             })}
         >
             <Tab.Screen
                 name="Home"
                 component={HomeScreen}
-                options={{ tabBarLabel: '⌂  Home' }}
+                options={{ tabBarLabel: 'Home' }}
             />
             <Tab.Screen
                 name="Calendar"
                 component={CalendarScreen}
-                options={{ tabBarLabel: '▦  Calendar' }}
+                options={{ tabBarLabel: 'Calendar' }}
             />
             <Tab.Screen
                 name="Team"
                 component={TeamScreen}
-                options={{ tabBarLabel: '◉  Team' }}
+                options={{ tabBarLabel: 'Team' }}
             />
             <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ tabBarLabel: '◎  Profile' }}
+                options={{ tabBarLabel: 'Profile' }}
             />
         </Tab.Navigator>
     );
 }
 
 // --- Root Stack Navigator ---
-// Screens listed here sit above the tab bar (no bottom nav visible).
 export default function App() {
     return (
         <NavigationContainer>

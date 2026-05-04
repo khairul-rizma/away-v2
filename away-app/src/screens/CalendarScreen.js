@@ -11,9 +11,9 @@ import {
     ScrollView,
     Alert,
     StatusBar,
+    Platform,
 } from 'react-native';
-import LeaveBadge from '../components/LeaveBadge';
-import Avatar from '../components/Avatar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, radius, leaveTypes } from '../theme';
 
 // Placeholder absence data: day-of-month → array of leave type colours
@@ -42,8 +42,10 @@ const ABSENCE_DETAILS = {
 };
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 const LEGEND = [
     { key: 'annual', label: 'Annual' },
@@ -53,7 +55,9 @@ const LEGEND = [
 ];
 
 export default function CalendarScreen({ navigation }) {
+    const insets = useSafeAreaInsets();
     const now = new Date();
+
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth()); // 0-indexed
 
@@ -91,61 +95,71 @@ export default function CalendarScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-            {/* Teal header with month navigation */}
-            <View style={styles.header}>
+            {/* Upgraded Teal header with dynamic padding */}
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
                 <TouchableOpacity onPress={prevMonth} style={styles.navBtn}>
                     <Text style={styles.navIcon}>‹</Text>
                 </TouchableOpacity>
+
                 <View style={styles.monthInfo}>
-                    <Text style={styles.monthTitle}>{MONTHS[month]} {year}</Text>
-                    <Text style={styles.absenceCount}>{absenceCount} absences this month</Text>
+                    <Text style={styles.monthTitle}>
+                        {MONTHS[month]} <Text style={styles.yearTitle}>{year}</Text>
+                    </Text>
+                    <View style={styles.absencePill}>
+                        <Text style={styles.absenceCount}>{absenceCount} absences this month</Text>
+                    </View>
                 </View>
+
                 <TouchableOpacity onPress={nextMonth} style={styles.navBtn}>
                     <Text style={styles.navIcon}>›</Text>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Day-of-week headers */}
-                <View style={styles.dayHeaders}>
-                    {DAYS.map((d, i) => (
-                        <View key={i} style={styles.dayHeaderCell}>
-                            <Text style={styles.dayHeaderText}>{d}</Text>
-                        </View>
-                    ))}
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+                {/* Elevated Calendar Card */}
+                <View style={styles.calendarCard}>
+                    {/* Day-of-week headers */}
+                    <View style={styles.dayHeaders}>
+                        {DAYS.map((d, i) => (
+                            <View key={i} style={styles.dayHeaderCell}>
+                                <Text style={styles.dayHeaderText}>{d}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Calendar grid */}
+                    <View style={styles.grid}>
+                        {cells.map((day, i) => {
+                            const dots = day ? (ABSENCES[day] || []) : [];
+                            const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+                            return (
+                                <TouchableOpacity
+                                    key={i}
+                                    style={styles.cell}
+                                    onPress={() => day && onDayPress(day)}
+                                    activeOpacity={day ? 0.6 : 1}
+                                >
+                                    <View style={[styles.dayCircle, isToday && styles.todayCircle]}>
+                                        <Text style={[styles.dayText, !day && styles.dayEmpty, isToday && styles.todayText]}>
+                                            {day || ''}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.dotsRow}>
+                                        {dots.slice(0, 3).map((c, di) => (
+                                            <View key={di} style={[styles.dot, { backgroundColor: c }]} />
+                                        ))}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
                 </View>
 
-                {/* Calendar grid */}
-                <View style={styles.grid}>
-                    {cells.map((day, i) => {
-                        const dots = day ? (ABSENCES[day] || []) : [];
-                        const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
-                        return (
-                            <TouchableOpacity
-                                key={i}
-                                style={styles.cell}
-                                onPress={() => day && onDayPress(day)}
-                                activeOpacity={day ? 0.7 : 1}
-                            >
-                                <View style={[styles.dayCircle, isToday && styles.todayCircle]}>
-                                    <Text style={[styles.dayText, !day && styles.dayEmpty, isToday && styles.todayText]}>
-                                        {day || ''}
-                                    </Text>
-                                </View>
-                                <View style={styles.dotsRow}>
-                                    {dots.slice(0, 3).map((c, di) => (
-                                        <View key={di} style={[styles.dot, { backgroundColor: c }]} />
-                                    ))}
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                {/* Legend */}
-                <View style={styles.legend}>
+                {/* Legend Card */}
+                <View style={styles.legendCard}>
                     {LEGEND.map((item) => (
                         <View key={item.key} style={styles.legendItem}>
                             <View style={[styles.legendDot, { backgroundColor: leaveTypes[item.key]?.color || colors.other }]} />
@@ -161,55 +175,96 @@ export default function CalendarScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.white },
+    container: { flex: 1, backgroundColor: '#F8FAF9' },
 
+    // Upgraded Header
     header: {
         backgroundColor: colors.primary,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing?.lg || 20,
+        paddingBottom: 25,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
     },
-    navBtn: { padding: spacing.sm },
-    navIcon: { fontSize: 22, color: 'rgba(255,255,255,0.75)' },
+    navBtn: {
+        padding: spacing.sm,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 20,
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    navIcon: { fontSize: 24, color: colors.white, marginTop: -4 },
     monthInfo: { flex: 1, alignItems: 'center' },
-    monthTitle: { fontSize: 16, fontWeight: '700', color: colors.white },
-    absenceCount: { fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
+    monthTitle: { fontSize: 22, fontWeight: '800', color: colors.white, letterSpacing: -0.5 },
+    yearTitle: { fontWeight: '400', opacity: 0.8 },
+    absencePill: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginTop: 6,
+    },
+    absenceCount: { fontSize: 11, color: colors.white, fontWeight: '600' },
 
-    scrollContent: { paddingHorizontal: spacing.sm, paddingBottom: 32 },
+    // Scroll
+    scrollContent: { paddingHorizontal: spacing?.md || 16, paddingBottom: 40, paddingTop: 15 },
 
-    dayHeaders: { flexDirection: 'row', marginTop: spacing.sm },
+    // Calendar Card
+    calendarCard: {
+        backgroundColor: colors.white,
+        borderRadius: radius?.lg || 16,
+        padding: spacing?.md || 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 2,
+    },
+
+    dayHeaders: { flexDirection: 'row', marginBottom: 10 },
     dayHeaderCell: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-    dayHeaderText: { fontSize: 9, fontWeight: '600', color: '#AAA' },
+    dayHeaderText: { fontSize: 11, fontWeight: '700', color: '#A0AAB2' },
 
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
-    cell: { width: '14.28%', alignItems: 'center', paddingVertical: 2 },
+    cell: { width: '14.28%', alignItems: 'center', paddingVertical: 6 },
     dayCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    todayCircle: { backgroundColor: colors.primary },
-    dayText: { fontSize: 11, color: '#333' },
-    todayText: { color: colors.white, fontWeight: '700' },
-    dayEmpty: { color: '#DDD' },
-    dotsRow: { flexDirection: 'row', gap: 2, marginTop: 2, height: 6 },
-    dot: { width: 5, height: 5, borderRadius: 3 },
+    todayCircle: { backgroundColor: colors.primary, shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 3 },
+    dayText: { fontSize: 14, color: '#1A1A1A', fontWeight: '500' },
+    todayText: { color: colors.white, fontWeight: '800' },
+    dayEmpty: { color: '#E0E5E9' },
+    dotsRow: { flexDirection: 'row', gap: 3, marginTop: 4, height: 6 },
+    dot: { width: 5, height: 5, borderRadius: 2.5 },
 
-    legend: {
+    // Legend Card
+    legendCard: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
+        justifyContent: 'center',
+        gap: 14,
+        backgroundColor: colors.white,
+        borderRadius: radius?.lg || 16,
         padding: spacing.md,
-        borderTopWidth: 0.5,
-        borderTopColor: '#EEE',
-        marginTop: spacing.sm,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        elevation: 1,
+        marginBottom: 20,
     },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    legendDot: { width: 8, height: 8, borderRadius: 4 },
-    legendLabel: { fontSize: 10, color: '#777' },
+    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    legendDot: { width: 10, height: 10, borderRadius: 5 },
+    legendLabel: { fontSize: 11, color: '#555', fontWeight: '500' },
 
-    tip: { textAlign: 'center', fontSize: 10, color: '#CCC', marginTop: 4, marginBottom: 10 },
+    tip: { textAlign: 'center', fontSize: 12, color: '#B0B8C0', fontWeight: '500' },
 });
